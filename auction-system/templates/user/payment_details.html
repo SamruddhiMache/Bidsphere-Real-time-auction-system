@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h3 class="card-title mb-0">Payment Details</h3>
+            </div>
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h5>Item Details</h5>
+                        <p><strong>Item:</strong> {{ item.ItemName }}</p>
+                        <p><strong>Description:</strong> {{ item.Description }}</p>
+                        <p><strong>Final Bid:</strong> ₹{{ payment.Amount }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h5>Payment Information</h5>
+                        <p><strong>Payment ID:</strong> {{ payment.PaymentID }}</p>
+                        <p><strong>Method:</strong> {{ payment.PaymentMethod }}</p>
+                        <p><strong>Status:</strong> 
+                            <span class="badge bg-{% if payment.PaymentStatus == 'Completed' %}success{% else %}warning{% endif %}">
+                                {{ payment.PaymentStatus }}
+                            </span>
+                        </p>
+                        <p><strong>Transaction Date:</strong> {{ payment.TransactionTime.strftime('%Y-%m-%d %H:%M') }}</p>
+                    </div>
+                </div>
+
+                {% if shipping %}
+                <hr>
+                <h5>Shipping Information</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Address:</strong> {{ shipping.Address }}</p>
+                        <p><strong>Method:</strong> {{ shipping.Method }}</p>
+                        <p><strong>Cost:</strong> ₹{{ shipping.Cost }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Status:</strong> 
+                            <span class="badge bg-{% if shipping.Status == 'Delivered' %}success{% elif shipping.Status == 'Shipped' %}info{% else %}warning{% endif %}">
+                                {{ shipping.Status }}
+                            </span>
+                        </p>
+                        <p><strong>Expected Delivery:</strong> 
+                            {% if shipping.Method == 'Express' %}
+                                {{ (payment.TransactionTime + timedelta(days=2)).strftime('%Y-%m-%d') }}
+                            {% else %}
+                                {{ (payment.TransactionTime + timedelta(days=5)).strftime('%Y-%m-%d') }}
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+                {% else %}
+                <div class="alert alert-warning">
+                    <p>Shipping details have not been provided yet.</p>
+                    <a href="{{ url_for('shipping', payment_id=payment.PaymentID) }}" class="btn btn-primary">Add Shipping Details</a>
+                </div>
+                {% endif %}
+
+                <div class="mt-4">
+                    <a href="{{ url_for('user_dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

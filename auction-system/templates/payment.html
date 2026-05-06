@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h3 class="card-title mb-0">Complete Payment for {{ item.ItemName }}</h3>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <h5>Payment Summary</h5>
+                    <p><strong>Item:</strong> {{ item.ItemName }}</p>
+                    <p><strong>Final Bid Amount:</strong> ₹{{ winning_bid }}</p>
+                </div>
+
+                <form method="POST">
+                    <div class="mb-3">
+                        <label class="form-label">Payment Method</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="payment_method" id="upi" value="UPI" required>
+                            <label class="form-check-label" for="upi">UPI</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="payment_method" id="card" value="Card">
+                            <label class="form-check-label" for="card">Credit/Debit Card</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="payment_method" id="cod" value="COD">
+                            <label class="form-check-label" for="cod">Cash on Delivery</label>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-success w-100">Pay ₹{{ winning_bid }}</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

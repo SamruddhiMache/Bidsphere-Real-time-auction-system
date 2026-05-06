@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h3 class="card-title mb-0">Create New Item</h3>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('create_new_item') }}" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="item_name" class="form-label">Item Name</label>
+                        <input type="text" class="form-control" id="item_name" name="item_name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="3" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="starting_bid" class="form-label">Starting Bid (₹)</label>
+                        <input type="number" class="form-control" id="starting_bid" name="starting_bid" step="0.01" min="1" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="category" class="form-label">Category (Optional)</label>
+                        <input type="number" class="form-control" id="category" name="category">
+                    </div>
+
+                    <!-- IMAGE UPLOAD -->
+                    <div class="mb-3">
+                        <label for="item_image" class="form-label">Item Image (Optional)</label>
+                        <input type="file" class="form-control" id="item_image" name="item_image" accept="image/*">
+                        <div class="form-text">Accepted formats: JPG, PNG, GIF. Max size: 16MB.</div>
+                    </div>
+
+                    <!-- IMAGE PREVIEW -->
+                    <div class="mb-3" id="image_preview_container" style="display:none;">
+                        <label class="form-label">Preview</label><br>
+                        <img id="image_preview" src="#" alt="Image Preview" 
+                             style="max-width: 300px; max-height: 200px; border-radius: 8px; border: 1px solid #ddd; padding: 4px;">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Create Item</button>
+                    <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">Cancel</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Preview script: shows selected image before submitting -->
+<script>
+    document.getElementById('item_image').addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        const previewContainer = document.getElementById('image_preview_container');
+        const preview = document.getElementById('image_preview');
+
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+                previewContainer.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        } else {
+            previewContainer.style.display = 'none';
+        }
+    });
+</script>
+{% endblock %}

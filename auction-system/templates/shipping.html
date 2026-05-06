@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h3 class="card-title mb-0">Shipping Details for {{ item.ItemName }}</h3>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-success mb-4">
+                    <h5>Payment Complete</h5>
+                    <p><strong>Payment Method:</strong> {{ payment.PaymentMethod }}</p>
+                    <p><strong>Amount Paid:</strong> ₹{{ payment.Amount }}</p>
+                    <p><strong>Transaction Date:</strong> {{ payment.TransactionTime.strftime('%Y-%m-%d %H:%M') }}</p>
+                </div>
+
+                <form method="POST">
+                    <div class="mb-3">
+                        <label class="form-label">Shipping Address</label>
+                        <textarea class="form-control" name="address" rows="4" required placeholder="Enter your complete delivery address"></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Shipping Method</label>
+                        <select class="form-select" name="shipping_method" required>
+                            <option value="Standard">Standard (3-5 days) - ₹50</option>
+                            <option value="Express">Express (1-2 days) - ₹100</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn btn-success w-100">Confirm Shipping</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h3 class="card-title mb-0">Shipping Tracking</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5>Item Details</h5>
+                        <p><strong>Item:</strong> {{ item.ItemName }}</p>
+                        <p><strong>Payment ID:</strong> {{ payment.PaymentID }}</p>
+                        <p><strong>Amount Paid:</strong> ₹{{ payment.Amount }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h5>Shipping Details</h5>
+                        <p><strong>Shipping ID:</strong> {{ shipping.ShippingID }}</p>
+                        <p><strong>Method:</strong> {{ shipping.Method }}</p>
+                        <p><strong>Cost:</strong> ₹{{ shipping.Cost }}</p>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <h5>Delivery Address</h5>
+                        <p>{{ shipping.Address }}</p>
+                    </div>
+                </div>
+                
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <h5>Tracking Status</h5>
+                        <div class="progress mb-3">
+                            {% if shipping.Status == 'Processing' %}
+                                <div class="progress-bar bg-warning" role="progressbar" style="width: 33%" aria-valuenow="33" aria-valuemin="0" aria-valuemax="100">Processing</div>
+                            {% elif shipping.Status == 'Shipped' %}
+                                <div class="progress-bar bg-info" role="progressbar" style="width: 66%" aria-valuenow="66" aria-valuemin="0" aria-valuemax="100">Shipped</div>
+                            {% else %}
+                                <div class="progress-bar bg-success" role="progressbar" style="width: 100%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100">Delivered</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <div class="text-center">
+                                <div class="{% if shipping.Status != 'Processing' %}text-muted{% endif %}">
+                                    <i class="fas fa-box fa-2x mb-2"></i>
+                                    <p>Processing</p>
+                                </div>
+                            </div>
+                            <div class="text-center">
+                                <div class="{% if shipping.Status != 'Shipped' %}text-muted{% endif %}">
+                                    <i class="fas fa-shipping-fast fa-2x mb-2"></i>
+                                    <p>Shipped</p>
+                                </div>
+                            </div>
+                            <div class="text-center">
+                                <div class="{% if shipping.Status != 'Delivered' %}text-muted{% endif %}">
+                                    <i class="fas fa-home fa-2x mb-2"></i>
+                                    <p>Delivered</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                {% if shipping.Status == 'Delivered' %}
+                <div class="alert alert-success mt-4">
+                    <p>Your item has been delivered successfully!</p>
+                </div>
+                {% elif shipping.Status == 'Shipped' %}
+                <div class="alert alert-info mt-4">
+                    <p>Your item is on the way!</p>
+                    <p><strong>Expected Delivery:</strong> 
+                        {% if shipping.Method == 'Express' %}
+                            {{ (payment.TransactionTime + timedelta(days=2)).strftime('%Y-%m-%d') }}
+                        {% else %}
+                            {{ (payment.TransactionTime + timedelta(days=5)).strftime('%Y-%m-%d') }}
+                        {% endif %}
+                    </p>
+                </div>
+                {% else %}
+                <div class="alert alert-warning mt-4">
+                    <p>Your order is being processed.</p>
+                    <p><strong>Expected Shipping Date:</strong> {{ (payment.TransactionTime + timedelta(days=1)).strftime('%Y-%m-%d') }}</p>
+                </div>
+                {% endif %}
+                
+                <div class="mt-4">
+                    <a href="{{ url_for('user_dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

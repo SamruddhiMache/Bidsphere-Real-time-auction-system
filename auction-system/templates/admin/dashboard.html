@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1>Admin Dashboard</h1>
+    </div>
+    <div class="col-auto">
+        <a href="{{ url_for('create_auction') }}" class="btn btn-success">Create New Auction</a>
+        <a href="{{ url_for('create_new_item') }}" class="btn btn-primary">Add New Item</a>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+        <h3 class="card-title mb-0">Auction Management</h3>
+    </div>
+    <div class="card-body">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Item</th>
+                    <th>Image</th>
+                    <th>Seller</th>
+                    <th>Start Time</th>
+                    <th>End Time</th>
+                    <th>Status</th>
+                    <th>Winner</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for auction, item, seller, winner in auctions %}
+                <tr>
+                    <td>{{ auction.AuctionID }}</td>
+                    <td>{{ item.ItemName }}</td>
+                    <td>
+                        {% if item.ImagePath %}
+                            <img src="{{ url_for('static', filename=item.ImagePath) }}"
+                                 alt="{{ item.ItemName }}"
+                                 style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;">
+                        {% else %}
+                            <span class="text-muted">—</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ seller.Username }}</td>
+                    <td>{{ auction.StartTime.strftime('%Y-%m-%d %H:%M') }}</td>
+                    <td>{{ auction.EndTime.strftime('%Y-%m-%d %H:%M') }}</td>
+                    <td>
+                        {% if auction.Status == 'Open' and auction.EndTime > now() %}
+                            <span class="badge bg-success">Open</span>
+                        {% else %}
+                            <span class="badge bg-danger">Closed</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if winner %}
+                            <span class="badge bg-warning text-dark">🏆 {{ winner.Username }}</span>
+                        {% elif auction.Status == 'Closed' %}
+                            <span class="text-muted">No bids</span>
+                        {% else %}
+                            <span class="text-muted">Ongoing</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <!-- Admin view route instead of bid route -->
+                        <a href="{{ url_for('admin_view_auction', auction_id=auction.AuctionID) }}" 
+                           class="btn btn-sm btn-info">View</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h3 class="card-title mb-0">User Statistics</h3>
+            </div>
+            <div class="card-body">
+                <canvas id="userChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h3 class="card-title mb-0">Auction Statistics</h3>
+            </div>
+            <div class="card-body">
+                <canvas id="auctionChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,360 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 class="mb-4">Welcome, {{ session.username }}</h1>
+
+<!-- 🎉 YOU WON BANNER — shows for each won auction that hasn't been paid yet -->
+{% for auction, item, highest_bid, payment in won_auctions %}
+    {% if not payment %}
+    <div class="alert alert-success alert-dismissible fade show mb-3" role="alert"
+         style="border-left: 6px solid #28a745; background: linear-gradient(135deg, #d4edda, #c3e6cb);">
+        <div class="d-flex align-items-center gap-3">
+            {% if item.ImagePath %}
+                <img src="{{ url_for('static', filename=item.ImagePath) }}"
+                     alt="{{ item.ItemName }}"
+                     style="width: 70px; height: 70px; object-fit: cover; border-radius: 8px; border: 2px solid #28a745;">
+            {% endif %}
+            <div>
+                <h5 class="mb-1">🎉 Congratulations! You won the auction for <strong>{{ item.ItemName }}</strong>!</h5>
+                <p class="mb-1">Your winning bid: <strong>₹{{ highest_bid }}</strong></p>
+                <a href="{{ url_for('payment', auction_id=auction.AuctionID) }}" class="btn btn-success btn-sm mt-1">
+                    💳 Complete Payment Now
+                </a>
+            </div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endif %}
+{% endfor %}
+
+<!-- ⚠️ OUTBID ALERTS — shows if user has been outbid on any open auction -->
+{% for bid, auction, item in user_bids %}
+    {% if auction.Status == 'Open' and auction.EndTime > now() %}
+        {% set user_bid_amount = bid.Amount %}
+        {# Check if this bid is not the highest — we pass this from backend #}
+        {% if bid.is_outbid %}
+        <div class="alert alert-warning alert-dismissible fade show mb-2" role="alert"
+             style="border-left: 6px solid #ffc107;">
+            ⚠️ You've been outbid on <strong>{{ item.ItemName }}</strong>!
+            Your bid: ₹{{ bid.Amount }} —
+            <a href="{{ url_for('bid', auction_id=auction.AuctionID) }}" class="alert-link">Bid again</a>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endif %}
+    {% endif %}
+{% endfor %}
+
+<div class="row mt-4">
+    <div class="col-md-12">
+        <h2>Your Auction Activity</h2>
+        <ul class="nav nav-tabs" id="myTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="bids-tab" data-bs-toggle="tab" data-bs-target="#bids" type="button" role="tab">Your Bids</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="won-tab" data-bs-toggle="tab" data-bs-target="#won" type="button" role="tab">
+                    Won Auctions
+                    {% if won_auctions %}
+                        <span class="badge bg-success ms-1">{{ won_auctions|length }}</span>
+                    {% endif %}
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="payments-tab" data-bs-toggle="tab" data-bs-target="#payments" type="button" role="tab">Payments</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="shipping-tab" data-bs-toggle="tab" data-bs-target="#shipping" type="button" role="tab">Shipping</button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="myTabContent">
+
+            <!-- Your Bids Tab -->
+            <div class="tab-pane fade show active" id="bids" role="tabpanel">
+                <div class="card border-top-0">
+                    <div class="card-body">
+                        {% if user_bids %}
+                        <div class="table-responsive">
+                            <table class="table table-striped align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Item</th>
+                                        <th>Your Bid</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for bid, auction, item in user_bids %}
+                                    <tr>
+                                        <td>{{ item.ItemName }}</td>
+                                        <td>₹{{ bid.Amount }}</td>
+                                        <td>
+                                            {% if auction.Status == 'Open' and auction.EndTime > now() %}
+                                                {% if bid.is_outbid %}
+                                                    <span class="badge bg-warning text-dark">⚠️ Outbid</span>
+                                                {% else %}
+                                                    <span class="badge bg-success">✅ Winning</span>
+                                                {% endif %}
+                                            {% elif auction.WinnerID == session.user_id %}
+                                                <span class="badge bg-success">🏆 Won</span>
+                                            {% else %}
+                                                <span class="badge bg-danger">Closed</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <a href="{{ url_for('bid', auction_id=auction.AuctionID) }}" class="btn btn-sm btn-primary">View</a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <p>You haven't placed any bids yet.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Won Auctions Tab -->
+            <div class="tab-pane fade" id="won" role="tabpanel">
+                <div class="card border-top-0">
+                    <div class="card-body">
+                        {% if won_auctions %}
+                        <div class="table-responsive">
+                            <table class="table table-striped align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Image</th>
+                                        <th>Item</th>
+                                        <th>Final Bid</th>
+                                        <th>End Date</th>
+                                        <th>Payment Status</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for auction, item, highest_bid, payment in won_auctions %}
+                                    <tr>
+                                        <td>
+                                            {% if item.ImagePath %}
+                                                <img src="{{ url_for('static', filename=item.ImagePath) }}"
+                                                     alt="{{ item.ItemName }}"
+                                                     style="width:50px; height:50px; object-fit:cover; border-radius:6px;">
+                                            {% else %}
+                                                <span class="text-muted">—</span>
+                                            {% endif %}
+                                        </td>
+                                        <td><strong>{{ item.ItemName }}</strong></td>
+                                        <td>₹{{ highest_bid }}</td>
+                                        <td>{{ auction.EndTime.strftime('%Y-%m-%d %H:%M') }}</td>
+                                        <td>
+                                            {% if payment %}
+                                                <span class="badge bg-success">✅ Paid</span>
+                                            {% else %}
+                                                <span class="badge bg-warning text-dark">⏳ Payment Required</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if payment %}
+                                                <a href="{{ url_for('payment_details', payment_id=payment.PaymentID) }}" class="btn btn-sm btn-info">View Details</a>
+                                            {% else %}
+                                                <a href="{{ url_for('payment', auction_id=auction.AuctionID) }}" class="btn btn-sm btn-success">💳 Pay Now</a>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <p>You haven't won any auctions yet. Keep bidding! 💪</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payments Tab -->
+            <div class="tab-pane fade" id="payments" role="tabpanel">
+                <div class="card border-top-0">
+                    <div class="card-body">
+                        {% if payments %}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Item</th>
+                                        <th>Amount</th>
+                                        <th>Method</th>
+                                        <th>Date</th>
+                                        <th>Status</th>
+                                        <th>Details</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for payment, item_name in payments %}
+                                    <tr>
+                                        <td>{{ item_name }}</td>
+                                        <td>₹{{ payment.Amount }}</td>
+                                        <td>{{ payment.PaymentMethod }}</td>
+                                        <td>{{ payment.TransactionTime.strftime('%Y-%m-%d') }}</td>
+                                        <td>
+                                            <span class="badge bg-{% if payment.PaymentStatus == 'Completed' %}success{% else %}warning{% endif %}">
+                                                {{ payment.PaymentStatus }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <a href="{{ url_for('payment_details', payment_id=payment.PaymentID) }}" class="btn btn-sm btn-primary">View</a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <p>No payments found.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Shipping Tab -->
+            <div class="tab-pane fade" id="shipping" role="tabpanel">
+                <div class="card border-top-0">
+                    <div class="card-body">
+                        {% if shippings %}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Item</th>
+                                        <th>Method</th>
+                                        <th>Cost</th>
+                                        <th>Status</th>
+                                        <th>Tracking</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for shipping, item_name in shippings %}
+                                    <tr>
+                                        <td>{{ item_name }}</td>
+                                        <td>{{ shipping.Method }}</td>
+                                        <td>₹{{ shipping.Cost }}</td>
+                                        <td>
+                                            <span class="badge bg-{% if shipping.Status == 'Delivered' %}success{% elif shipping.Status == 'Shipped' %}info{% else %}warning text-dark{% endif %}">
+                                                {{ shipping.Status }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <a href="{{ url_for('shipping_details', shipping_id=shipping.ShippingID) }}" class="btn btn-sm btn-primary">Track</a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <p>No shipping records found.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Active Auctions Section -->
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h3 class="card-title mb-0">Active Auctions</h3>
+            </div>
+            <div class="card-body">
+                {% if active_auctions %}
+                <div class="row">
+                    {% for auction, item, highest_bid in active_auctions %}
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100 shadow-sm">
+                            <!-- Item Image -->
+                            {% if item.ImagePath %}
+                                <img src="{{ url_for('static', filename=item.ImagePath) }}"
+                                     class="card-img-top"
+                                     alt="{{ item.ItemName }}"
+                                     style="height: 180px; object-fit: cover;">
+                            {% else %}
+                                <div style="height:180px; background:#f0f0f0; display:flex; align-items:center; justify-content:center;">
+                                    <span class="text-muted">📷 No image</span>
+                                </div>
+                            {% endif %}
+                            <div class="card-body">
+                                <h5 class="card-title">{{ item.ItemName }}</h5>
+                                <p class="card-text text-muted">{{ item.Description|truncate(80) }}</p>
+                                <p><strong>Current Bid:</strong> <span class="text-success fw-bold">₹{{ highest_bid }}</span></p>
+                                <p class="card-text">
+                                    <small class="text-muted">Ends: {{ auction.EndTime.strftime('%Y-%m-%d %H:%M') }}</small>
+                                </p>
+                                <!-- Countdown timer -->
+                                <p class="card-text">
+                                    <span class="countdown badge bg-danger fs-6"
+                                          data-end="{{ auction.EndTime.strftime('%Y-%m-%dT%H:%M:%S') }}">
+                                        Loading...
+                                    </span>
+                                </p>
+                            </div>
+                            <div class="card-footer">
+                                <a href="{{ url_for('bid', auction_id=auction.AuctionID) }}" class="btn btn-primary w-100">Place Bid</a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p>No active auctions available.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Countdown Timer Script -->
+<script>
+function updateCountdowns() {
+    document.querySelectorAll('.countdown').forEach(function(el) {
+        const endTime = new Date(el.getAttribute('data-end'));
+        const now = new Date();
+        const diff = endTime - now;
+
+        if (diff <= 0) {
+            el.textContent = 'Auction Ended';
+            el.className = 'countdown badge bg-secondary fs-6';
+            return;
+        }
+
+        const days    = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours   = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+        if (diff < 3600000) {
+            // Less than 1 hour — red and urgent
+            el.className = 'countdown badge bg-danger fs-6';
+            el.textContent = `⏰ ${minutes}m ${seconds}s left`;
+        } else if (diff < 86400000) {
+            // Less than 1 day — warning yellow
+            el.className = 'countdown badge bg-warning text-dark fs-6';
+            el.textContent = `${hours}h ${minutes}m left`;
+        } else {
+            // More than 1 day — green
+            el.className = 'countdown badge bg-success fs-6';
+            el.textContent = `${days}d ${hours}h ${minutes}m left`;
+        }
+    });
+}
+
+updateCountdowns();
+setInterval(updateCountdowns, 1000);
+</script>
+{% endblock %}

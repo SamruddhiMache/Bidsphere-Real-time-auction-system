@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="row mb-4">
+    <div class="col">
+        <h1>View Auction</h1>
+    </div>
+    <div class="col-auto">
+        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">
+            ← Back to Dashboard
+        </a>
+    </div>
+</div>
+
+<!-- Auction Details Card -->
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+        <h3 class="card-title mb-0">Auction Details</h3>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            
+            <!-- Image -->
+            <div class="col-md-3 text-center">
+                {% if item.ImagePath %}
+                    <img src="{{ url_for('static', filename=item.ImagePath) }}"
+                         class="img-fluid rounded"
+                         style="max-height: 150px;">
+                {% else %}
+                    <span class="text-muted">No Image</span>
+                {% endif %}
+            </div>
+
+            <!-- Details -->
+            <div class="col-md-9">
+                <h4>{{ item.ItemName }}</h4>
+                <p><strong>Description:</strong> {{ item.Description }}</p>
+
+                <p>
+                    <strong>Status:</strong>
+                    {% if auction.Status == 'Open' %}
+                        <span class="badge bg-success">Open</span>
+                    {% else %}
+                        <span class="badge bg-danger">Closed</span>
+                    {% endif %}
+                </p>
+
+                <p>
+                    <strong>Current Bid:</strong>
+                    <span class="badge bg-warning text-dark">₹ {{ current_bid }}</span>
+                </p>
+
+                <p>
+                    <strong>End Time:</strong>
+                    {{ auction.EndTime.strftime('%Y-%m-%d %H:%M') }}
+                </p>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Bid History Card -->
+<div class="card">
+    <div class="card-header bg-info text-white">
+        <h3 class="card-title mb-0">Bid History</h3>
+    </div>
+    <div class="card-body">
+
+        {% if bid_history %}
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Bid Amount</th>
+                    <th>Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for bid, user in bid_history %}
+                <tr>
+                    <td>{{ user.Username }}</td>
+                    <td>₹ {{ bid.Amount }}</td>
+                    <td>{{ bid.BidTime.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+            <p class="text-muted">No bids placed yet.</p>
+        {% endif %}
+
+    </div>
+</div>
+
+<script>
+    setTimeout(() => {
+        location.reload();
+    }, 5000);
+</script>
+
+{% endblock %}
