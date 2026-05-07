@@ -33,7 +33,7 @@ def update_auction_statuses():
     try:
         if not request.path.startswith('/static/'):
             db.session.execute(
-                text('UPDATE Auctions SET Status = "Closed" WHERE EndTime < NOW() AND Status = "Open"')
+                text('UPDATE Auctions SET Status = "Closed" WHERE EndTime <= UTC_TIMESTAMP() AND Status = "Open"')
             )
             db.session.commit()
             update_auction_winners()
