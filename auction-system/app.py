@@ -533,8 +533,13 @@ def shipping_details(shipping_id):
                           shipping=shipping, payment=payment, auction=auction, item=item)
 
 # Initialize database and run app
+# Initialize database and run app
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
+
     create_admin()
-    app.run(debug=True)
+
+    port = int(os.environ.get('PORT', 5000))
+
+    app.run(host='0.0.0.0', port=port, debug=False)
